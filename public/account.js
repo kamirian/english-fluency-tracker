@@ -1,5 +1,5 @@
 // English Fluency Tracker — account card and bring-your-own AI connections.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 (() => {
   const $a = selector => document.querySelector(selector);
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);

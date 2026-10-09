@@ -1,5 +1,5 @@
 // English Fluency Tracker — small crypto helpers built on Web Crypto.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();

@@ -1,5 +1,5 @@
 -- English Fluency Tracker — initial schema
--- Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+-- Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 CREATE TABLE users (
   id TEXT PRIMARY KEY,

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A daily English fluency tracker with Google sign-in, cloud sync, and bring-your-own AI (OpenAI, Anthropic, Gemini, or any OpenAI-compatible service) plus copy-and-paste mode for any AI chat.",
   "author": "Kiyan Amirian",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "type": "module",
   "scripts": {

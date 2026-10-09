@@ -1,5 +1,5 @@
 // English Fluency Tracker — Cloudflare Workers configuration.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "english-fluency-tracker",

@@ -1,5 +1,5 @@
 // English Fluency Tracker — Cloudflare Worker entry point.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 //
 // Static files in /public are served by Workers Static Assets. This script handles
 // sign-in (/auth/*) and the JSON API (/api/*).

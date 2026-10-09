@@ -1,5 +1,5 @@
 (() => {
-      // English Fluency Tracker · © 2026 Kiyan Amirian. All rights reserved.
+      // English Fluency Tracker · © 2026 Kiyan Amirian · MIT License
       const DEVICE_STORAGE_KEY = "english-fluency-tracker-v1";
       const DEVICE_DRAFTS_KEY = "english-fluency-daily-drafts-v1";
       const ACTIVE_ACCOUNT_KEY = "english-fluency-active-account";

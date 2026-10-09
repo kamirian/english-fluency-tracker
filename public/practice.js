@@ -1,5 +1,5 @@
 // English Fluency Tracker · Practice Zone
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 (() => {
   const $p = selector => document.querySelector(selector);
   const escapeHtml = value => String(value ?? "").replace(/[&<>'"]/g, character => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character]);

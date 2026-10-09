@@ -1,5 +1,5 @@
 // English Fluency Tracker — shared prompts and response schemas.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 //
 // Used by the server (connected AI providers) and by the browser (copy-and-paste mode),
 // so both paths coach the learner the same way.

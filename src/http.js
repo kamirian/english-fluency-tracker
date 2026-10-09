@@ -1,5 +1,5 @@
 // English Fluency Tracker — HTTP helpers shared by the API routes.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 export const securityHeaders = {
   "Cache-Control": "no-store",

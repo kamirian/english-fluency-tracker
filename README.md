@@ -1,6 +1,6 @@
 # English Fluency Tracker
 
-Created by **Kiyan Amirian** · © 2026 Kiyan Amirian. All rights reserved. See [LICENSE](LICENSE).
+Created by **Kiyan Amirian** · © 2026 Kiyan Amirian · Released under the [MIT License](LICENSE).
 
 A daily tracker for building natural, fluent English. It works with **any AI**: learners can connect their own API key, or use the copy-and-paste mode in any AI chat without a key.
 

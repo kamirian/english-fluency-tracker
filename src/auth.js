@@ -1,5 +1,5 @@
 // English Fluency Tracker — Google sign-in and sessions.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 import { base64ToBytes, base64Url, randomToken, sha256, sha256Hex } from "./crypto.js";
 import { HttpError, buildCookie, clearCookie, cookieName, htmlMessage, json, parseCookies, redirect, requireSameOrigin } from "./http.js";

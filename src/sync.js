@@ -1,5 +1,5 @@
 // English Fluency Tracker — per-account cloud copy of the tracker.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 import { HttpError, json, rateLimit, readJson, requireSameOrigin } from "./http.js";
 

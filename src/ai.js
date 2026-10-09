@@ -1,5 +1,5 @@
 // English Fluency Tracker — bring-your-own-key AI providers.
-// Copyright (c) 2026 Kiyan Amirian. All rights reserved.
+// Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 
 import { AI_TASKS, cleanLearner, cleanSession, practiceInstructions, practiceTask, reviewSystemPrompt } from "../public/shared/prompts.js";
 import { decryptSecret, encryptSecret, encryptionConfigured } from "./crypto.js";
