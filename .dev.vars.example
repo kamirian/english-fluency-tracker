@@ -1,0 +1,13 @@
+# Copy this file to .dev.vars for local development. Never commit .dev.vars.
+
+# Google OAuth client (Web application). Add http://localhost:8787/auth/google/callback
+# as an authorized redirect URI to sign in locally with Google.
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# 32 random bytes, base64. Generate with: openssl rand -base64 32
+# Changing it later makes previously saved API keys unreadable.
+KEY_ENCRYPTION_SECRET=
+
+# Local testing only: shows a "Test sign-in" button on localhost without Google.
+DEV_LOGIN=true

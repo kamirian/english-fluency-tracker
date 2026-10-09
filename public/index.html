@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="A flexible daily tracker for building natural, fluent English with any AI assistant." />
+  <meta name="author" content="Kiyan Amirian" />
+  <title>English Fluency Tracker</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23102035'/%3E%3Cpath d='M18 19h28v7H27v8h16v7H27v9h19v7H18z' fill='%235eead4'/%3E%3C/svg%3E" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #edf7ff;
+      --muted: #9ab0c3;
+      --bg: #07111d;
+      --panel: #0e1d2c;
+      --panel-2: #132638;
+      --line: #284156;
+      --teal: #5eead4;
+      --teal-deep: #0f766e;
+      --blue: #7dd3fc;
+      --amber: #fbbf24;
+      --red: #fda4af;
+      --shadow: 0 22px 60px rgba(0, 0, 0, .28);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    html { max-width: 100%; overflow-x: clip; scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-width: 320px;
+      max-width: 100%;
+      overflow-x: clip;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 5% 0%, rgba(94,234,212,.11), transparent 28rem),
+        radial-gradient(circle at 95% 18%, rgba(125,211,252,.08), transparent 24rem),
+        var(--bg);
+      color: var(--ink);
+      font: 16px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button, input, textarea, select { min-width: 0; font: inherit; }
+    button, label, input[type="checkbox"] { cursor: pointer; }
+    a { color: var(--blue); }
+    a:hover { color: var(--teal); }
+
+    .shell { width: min(1240px, calc(100% - 32px)); max-width: 100%; margin: 0 auto; padding: 28px 0 80px; }
+    .topbar { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+    .eyebrow { margin: 0 0 5px; color: var(--teal); font-size: .82rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2rem, 5vw, 4.4rem); line-height: .98; letter-spacing: -.055em; }
+    h2 { margin: 0; font-size: 1.35rem; letter-spacing: -.025em; }
+    h3 { margin: 0; font-size: 1rem; }
+    p { margin: 0; }
+    .subtitle { max-width: 680px; margin-top: 12px; color: var(--muted); font-size: 1.03rem; }
+
+    .date-badge { min-width: 155px; padding: 12px 16px; border: 1px solid var(--line); border-radius: 999px; background: rgba(14,29,44,.78); color: var(--muted); text-align: center; font-weight: 700; }
+    .date-badge strong { color: var(--ink); }
+    .top-actions { display: grid; justify-items: end; gap: 9px; flex: 0 0 auto; }
+    .sync-button { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; background: rgba(14,29,44,.86); color: var(--muted); font-size: .82rem; font-weight: 800; }
+    .sync-button:hover { border-color: var(--blue); color: var(--ink); }
+    .sync-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 3px rgba(251,191,36,.12); }
+    .sync-button.connected { color: var(--teal); border-color: rgba(94,234,212,.45); }
+    .sync-button.connected .sync-dot { background: var(--teal); box-shadow: 0 0 0 3px rgba(94,234,212,.12); }
+    .sync-button.error .sync-dot { background: var(--red); box-shadow: 0 0 0 3px rgba(253,164,175,.12); }
+
+    .sync-status { min-height: 1.5em; color: var(--muted); font-size: .86rem; }
+
+    .jump-nav { position: sticky; top: 0; z-index: 50; display: flex; flex-wrap: nowrap; gap: 8px; max-width: 100%; margin: -6px 0 18px; padding: 10px; overflow-x: auto; overscroll-behavior-inline: contain; scroll-snap-type: x proximity; scrollbar-width: thin; border: 1px solid var(--line); border-radius: 16px; background: rgba(7,17,29,.92); box-shadow: 0 12px 30px rgba(0,0,0,.2); backdrop-filter: blur(16px); }
+    .jump-nav a { flex: 0 0 auto; scroll-snap-align: center; padding: 9px 13px; border: 1px solid transparent; border-radius: 10px; color: var(--muted); text-decoration: none; font-size: .88rem; font-weight: 800; }
+    .jump-nav a:hover { color: var(--ink); border-color: var(--line); background: rgba(20,41,59,.72); }
+    .jump-nav a[aria-selected="true"] { color: #06201e; border-color: var(--teal); background: var(--teal); }
+    [data-tab-panel] { min-width: 0; max-width: 100%; }
+    [data-tab-panel][hidden] { display: none !important; }
+
+    .summary-strip { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; min-width: 0; max-width: 100%; margin-bottom: 18px; }
+    .summary-strip > *, .progress-layout > *, .progress-dashboard > *, .analytics-grid > *, .analytics-summary > *, .calendar-grid > * { min-width: 0; }
+    .metric { padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: rgba(14,29,44,.86); }
+    .metric span { display: block; color: var(--muted); font-size: .82rem; }
+    .metric strong { display: block; margin-top: 3px; font-size: 1.55rem; line-height: 1.2; }
+
+    .layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(300px, .75fr); gap: 18px; min-width: 0; max-width: 100%; align-items: start; }
+    .panel { min-width: 0; max-width: 100%; border: 1px solid var(--line); border-radius: var(--radius); background: rgba(14,29,44,.94); box-shadow: var(--shadow); overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 20px 22px; border-bottom: 1px solid var(--line); }
+    .panel-body { padding: 22px; }
+    .help { color: var(--muted); font-size: .9rem; }
+
+    .date-row { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; margin-bottom: 22px; }
+    .field { display: grid; gap: 7px; }
+    .field > span, .label { color: var(--muted); font-size: .84rem; font-weight: 750; }
+    input[type="date"], input[type="text"], input[type="number"], input[type="password"], input[type="url"], input[type="search"], input[type="email"], textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      outline: none;
+      background: #091725;
+      color: var(--ink);
+      padding: 10px 12px;
+    }
+    input:focus, textarea:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(94,234,212,.12); }
+    textarea { min-height: 90px; resize: vertical; }
+
+    .status-group { display: flex; flex-wrap: wrap; gap: 8px; }
+    .status-option input { position: absolute; opacity: 0; pointer-events: none; }
+    .status-option span { display: block; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: #0a1825; font-size: .9rem; font-weight: 750; }
+    .status-option input:checked + span { color: #06201e; background: var(--teal); border-color: var(--teal); }
+
+    .section-label { margin: 22px 0 11px; }
+    .activity-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .activity { display: grid; grid-template-columns: auto 1fr 74px; gap: 11px; align-items: start; padding: 14px; border: 1px solid var(--line); border-radius: 15px; background: #0a1825; transition: border-color .15s, transform .15s, background .15s; }
+    .activity:hover { transform: translateY(-1px); border-color: #3e6079; }
+    .activity.checked { border-color: var(--teal-deep); background: rgba(15,118,110,.12); }
+    .activity input[type="checkbox"] { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--teal); }
+    .activity-copy strong { display: block; }
+    .activity-copy small { display: block; margin-top: 3px; color: var(--muted); line-height: 1.35; }
+    .minutes { position: relative; }
+    .minutes input { padding-right: 28px; text-align: right; }
+    .minutes::after { content: "m"; position: absolute; right: 10px; top: 10px; color: var(--muted); font-size: .8rem; pointer-events: none; }
+
+    .notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .wide { grid-column: 1 / -1; }
+    .phrase-stack { display: grid; gap: 7px; }
+    .action-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 18px; }
+    .btn { border: 1px solid var(--line); border-radius: 11px; padding: 10px 15px; background: #14293b; color: var(--ink); font-weight: 800; }
+    .btn:hover { border-color: var(--blue); }
+    .btn.primary { border-color: var(--teal); background: var(--teal); color: #06201e; }
+    .btn.ghost { background: transparent; color: var(--muted); }
+    .save-state { align-self: center; color: var(--teal); font-size: .88rem; min-height: 1.4em; }
+
+    .side { display: grid; gap: 18px; position: sticky; top: 16px; }
+    .chat-box { min-height: 260px; white-space: pre-wrap; color: #cfe3f1; }
+    .tip { display: flex; gap: 10px; margin-top: 13px; color: var(--muted); font-size: .85rem; }
+    .tip b { color: var(--amber); }
+
+    .handoff-layout { display: grid; grid-template-columns: minmax(260px,.58fr) minmax(0,1.42fr); gap: 20px; }
+    .handoff-guide { display: grid; gap: 12px; align-content: start; }
+    .handoff-step { padding: 13px; border-left: 3px solid var(--teal); border-radius: 0 12px 12px 0; background: #0a1825; }
+    .handoff-step:nth-child(2) { border-color: var(--blue); }
+    .handoff-step:nth-child(3) { border-color: var(--amber); }
+    .handoff-step strong, .handoff-step small { display: block; }
+    .handoff-step small { margin-top: 4px; color: var(--muted); }
+    .handoff-preview { min-height: 520px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .78rem; line-height: 1.55; }
+    .handoff-meta { margin-top: 8px; color: var(--muted); font-size: .8rem; }
+
+    .routine-list { display: grid; gap: 10px; }
+    .routine { padding: 12px 13px; border-left: 3px solid var(--blue); background: #0a1825; border-radius: 0 12px 12px 0; }
+    .routine:nth-child(2) { border-color: var(--teal); }
+    .routine:nth-child(3) { border-color: var(--amber); }
+    .routine strong { display: block; }
+    .routine small { display: block; margin-top: 3px; color: var(--muted); }
+
+    .schedule-layout { display: grid; grid-template-columns: minmax(260px,.72fr) minmax(0,1.28fr); gap: 18px; }
+    .today-priority { padding: 18px; border: 1px solid var(--teal-deep); border-radius: 16px; background: linear-gradient(145deg, rgba(94,234,212,.12), rgba(125,211,252,.05)); }
+    .today-priority .eyebrow { margin-bottom: 7px; }
+    .today-priority h3 { font-size: 1.35rem; }
+    .today-priority p { margin-top: 7px; color: #cfe3f1; }
+    .weekly-schedule { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; }
+    .schedule-card { padding: 13px; border: 1px solid var(--line); border-radius: 13px; background: #0a1825; }
+    .schedule-card.today { border-color: var(--teal); box-shadow: inset 0 0 0 1px rgba(94,234,212,.18); }
+    .schedule-card strong, .schedule-card small { display: block; }
+    .schedule-card small { margin-top: 4px; color: var(--muted); }
+    .schedule-card .tag { margin-top: 8px; }
+
+    .writing-layout { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(280px,.65fr); gap: 20px; }
+    .writing-workspace { display: grid; gap: 14px; }
+    .writing-meta { display: grid; grid-template-columns: 1fr 1fr 120px; gap: 10px; }
+    .writing-draft { min-height: 240px; }
+    .writing-count { color: var(--teal); font-size: .82rem; font-weight: 800; text-align: right; }
+    .self-check { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+    .self-check label { display: flex; gap: 8px; align-items: start; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; color: #cfe3f1; font-size: .84rem; }
+    .self-check input { margin-top: 2px; accent-color: var(--teal); }
+    .writing-review-box { padding: 15px; border: 1px solid #3b5d75; border-radius: 14px; background: rgba(125,211,252,.05); }
+    .writing-review-box textarea { min-height: 120px; margin-top: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; }
+    .writing-feedback { display: grid; gap: 10px; }
+    .feedback-card { padding: 13px; border-left: 3px solid var(--blue); border-radius: 0 11px 11px 0; background: #102235; }
+    .feedback-card strong { display: block; margin-bottom: 4px; }
+    .corrected-writing { white-space: pre-wrap; line-height: 1.65; color: #d9edf8; }
+    .writing-rewrite { min-height: 180px; }
+    .writing-side { display: grid; gap: 14px; align-content: start; }
+    .writing-history { display: grid; gap: 8px; max-height: 620px; overflow: auto; }
+    .writing-history-item { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: #0a1825; color: var(--ink); text-align: left; }
+    .writing-history-item:hover { border-color: var(--blue); }
+    .writing-history-item strong, .writing-history-item small { display: block; }
+    .writing-history-item small { margin-top: 3px; color: var(--muted); }
+
+    .session-layout { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(290px,.75fr); gap: 20px; }
+    .session-form { display: grid; gap: 13px; }
+    .session-meta { display: grid; grid-template-columns: 1fr 1fr 110px 110px; gap: 9px; }
+    .session-source { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .session-evidence { min-height: 150px; }
+    .session-review-box { padding: 15px; border: 1px solid #3b5d75; border-radius: 14px; background: rgba(125,211,252,.05); }
+    .session-review-box textarea { min-height: 115px; margin-top: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; }
+    .session-side { display: grid; gap: 13px; align-content: start; }
+    .session-tools { display: grid; grid-template-columns: 150px 1fr; gap: 8px; }
+    .session-history { display: grid; gap: 8px; max-height: 650px; overflow: auto; }
+    .session-history-item { width: 100%; padding: 11px 12px; border: 1px solid var(--line); border-left: 4px solid var(--activity-color); border-radius: 10px; background: #0a1825; color: var(--ink); text-align: left; }
+    .session-history-item:hover { border-color: var(--blue); border-left-color: var(--activity-color); }
+    .session-history-item strong, .session-history-item small { display: block; }
+    .session-history-item small { margin-top: 3px; color: var(--muted); }
+    .recorder { padding: 13px; border: 1px dashed #45687f; border-radius: 12px; background: #091725; }
+    .recorder audio { width: 100%; margin-top: 10px; }
+    .recorder-note { margin-top: 7px; color: var(--muted); font-size: .78rem; }
+    .session-feedback { display: grid; gap: 9px; }
+
+    .lower { display: grid; gap: 18px; margin-top: 18px; }
+    .progress-layout { display: grid; grid-template-columns: minmax(0,.72fr) minmax(0,1.28fr); gap: 20px; min-width: 0; max-width: 100%; }
+    .progress-dashboard { display: grid; gap: 18px; min-width: 0; max-width: 100%; padding: 22px; border-bottom: 1px solid var(--line); }
+    .calendar-shell, .analytics-card { min-width: 0; max-width: 100%; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #0a1825; }
+    .calendar-toolbar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; align-items: center; }
+    .calendar-nav, .view-switch { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
+    .calendar-nav strong { min-width: 150px; text-align: center; }
+    .view-btn.active { border-color: var(--teal); background: rgba(94,234,212,.14); color: var(--teal); }
+    .activity-legend { display: flex; flex-wrap: wrap; gap: 8px 13px; margin-top: 13px; color: var(--muted); font-size: .78rem; }
+    .legend-item { display: inline-flex; align-items: center; gap: 6px; }
+    .legend-dot, .activity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--activity-color); }
+    .calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0,1fr)); gap: 7px; min-width: 0; max-width: 100%; }
+    .calendar-weekdays { margin-top: 15px; color: var(--muted); font-size: .72rem; font-weight: 900; text-align: center; text-transform: uppercase; }
+    .calendar-grid { margin-top: 7px; }
+    .calendar-day { width: 100%; min-width: 0; min-height: 92px; padding: 9px; overflow: hidden; border: 1px solid var(--line); border-radius: 11px; background: #0c1d2b; color: var(--ink); text-align: left; }
+    .calendar-day:hover { border-color: var(--blue); }
+    .calendar-day.outside { opacity: .38; }
+    .calendar-day.today { box-shadow: inset 0 0 0 2px var(--teal); }
+    .calendar-day.rest { background: rgba(251,191,36,.08); }
+    .calendar-day-number { display: flex; justify-content: space-between; gap: 6px; font-size: .79rem; font-weight: 900; }
+    .calendar-minutes { color: var(--muted); font-size: .69rem; font-weight: 700; }
+    .activity-dots { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+    .calendar-additions { display: block; margin-top: 8px; color: var(--teal); font-size: .68rem; font-weight: 800; }
+    .calendar-day-view { margin-top: 15px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: #0c1d2b; }
+    .day-activity-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 13px; }
+    .day-activity { display: flex; justify-content: space-between; gap: 10px; padding: 10px 11px; border-left: 3px solid var(--activity-color); border-radius: 0 9px 9px 0; background: #102235; }
+    .year-calendar { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin-top: 15px; }
+    .mini-month { padding: 10px; border: 1px solid var(--line); border-radius: 12px; }
+    .mini-month h4 { margin-bottom: 8px; font-size: .83rem; }
+    .mini-weekdays, .mini-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 3px; }
+    .mini-weekdays { color: var(--muted); font-size: .55rem; text-align: center; }
+    .mini-day { aspect-ratio: 1; min-width: 0; border: 0; border-radius: 3px; background: #102235; color: transparent; font-size: 0; }
+    .mini-day.outside { opacity: .18; }
+    .mini-day.today { outline: 1px solid var(--ink); }
+    .analytics-summary { display: grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap: 9px; }
+    .analytics-stat { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: #0a1825; }
+    .analytics-stat span { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+    .analytics-stat strong { display: block; margin-top: 4px; font-size: 1.35rem; }
+    .analytics-grid { display: grid; grid-template-columns: minmax(0,1.55fr) minmax(240px,.65fr); gap: 14px; min-width: 0; max-width: 100%; }
+    .histogram { display: flex; align-items: end; gap: 5px; min-height: 205px; margin-top: 14px; padding: 22px 4px 0; overflow-x: auto; border-bottom: 1px solid var(--line); }
+    .hist-column { flex: 1 0 18px; min-width: 18px; height: 175px; display: grid; grid-template-rows: 18px 1fr 24px; align-items: end; text-align: center; }
+    .hist-value { color: var(--muted); font-size: .61rem; }
+    .hist-stack { width: 100%; min-height: 2px; align-self: end; display: flex; flex-direction: column-reverse; overflow: hidden; border-radius: 5px 5px 0 0; background: #102235; }
+    .hist-segment { width: 100%; background: var(--activity-color); }
+    .hist-label { padding-top: 5px; color: var(--muted); font-size: .6rem; white-space: nowrap; }
+    .addition-bars { display: grid; gap: 13px; margin-top: 17px; }
+    .addition-row { display: grid; grid-template-columns: 90px 1fr 28px; gap: 9px; align-items: center; font-size: .8rem; }
+    .addition-track { height: 12px; overflow: hidden; border-radius: 999px; background: #07111d; }
+    .addition-fill { display: block; height: 100%; border-radius: inherit; background: var(--type-color); }
+    .coverage { display: grid; gap: 12px; }
+    .coverage-row { display: grid; grid-template-columns: 112px 1fr 28px; gap: 10px; align-items: center; font-size: .88rem; }
+    .bar { height: 9px; border-radius: 999px; overflow: hidden; background: #07111d; }
+    .bar > i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--teal-deep), var(--teal)); }
+    .history { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .history th { color: var(--muted); text-align: left; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+    .history th, .history td { padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    .history tr:last-child td { border-bottom: 0; }
+    .tag { display: inline-block; margin: 2px 4px 2px 0; padding: 2px 7px; border-radius: 999px; background: #183348; color: #cfe3f1; font-size: .76rem; }
+    .tag.rest { color: #2b1b00; background: var(--amber); }
+    .empty { padding: 24px; border: 1px dashed var(--line); border-radius: 14px; color: var(--muted); text-align: center; }
+
+    details { border-top: 1px solid var(--line); }
+    summary { padding: 17px 22px; cursor: pointer; font-weight: 800; }
+    .resources { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; padding: 0 22px 22px; }
+    .resource { display: block; padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: #0a1825; text-decoration: none; }
+    .resource strong { display: block; color: var(--ink); }
+    .resource small { color: var(--muted); }
+
+    .library-layout { display: grid; grid-template-columns: minmax(280px,.82fr) minmax(0,1.38fr); gap: 20px; }
+    .library-form { display: grid; gap: 12px; align-content: start; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #0a1825; }
+    select { width: 100%; border: 1px solid var(--line); border-radius: 11px; outline: none; background: #091725; color: var(--ink); padding: 10px 12px; }
+    select:focus { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(94,234,212,.12); }
+    .library-tools { display: grid; grid-template-columns: 140px 170px 1fr; gap: 9px; margin-bottom: 11px; }
+    .library-list { display: grid; gap: 9px; max-height: 590px; overflow: auto; padding-right: 3px; }
+    .library-trash { margin-top: 13px; border: 1px solid var(--line); border-radius: 13px; background: rgba(7,17,29,.55); }
+    .library-trash summary { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; color: var(--muted); }
+    .library-trash-list { display: grid; gap: 8px; padding: 0 12px 12px; }
+    .trash-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; border: 1px solid var(--line); border-radius: 11px; background: #0a1825; }
+    .trash-item strong, .trash-item small { display: block; }
+    .trash-item small { margin-top: 2px; color: var(--muted); }
+    .library-card { display: grid; grid-template-columns: 1fr auto; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 14px; background: #0a1825; }
+    .library-card.selected { border-color: var(--teal); box-shadow: inset 0 0 0 1px rgba(94,234,212,.18); }
+    .library-card h3 { font-size: 1.05rem; }
+    .library-card p { margin-top: 4px; color: #cfe3f1; }
+    .library-card small { display: block; margin-top: 5px; color: var(--muted); }
+    .library-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; align-items: start; max-width: 190px; }
+    .review-check { display: flex; align-items: center; gap: 6px; padding: 6px 8px; color: var(--muted); font-size: .8rem; font-weight: 800; }
+    .review-check input { width: 17px; height: 17px; accent-color: var(--teal); }
+    .icon-btn { border: 1px solid var(--line); border-radius: 9px; padding: 6px 9px; background: #14293b; color: var(--ink); font-size: .8rem; font-weight: 800; }
+    .icon-btn:hover { border-color: var(--blue); }
+    .type-tag { display: inline-block; margin-bottom: 7px; padding: 3px 8px; border-radius: 999px; background: rgba(94,234,212,.13); color: var(--teal); font-size: .72rem; font-weight: 900; letter-spacing: .04em; text-transform: uppercase; }
+    .type-tag.grammar { color: var(--blue); background: rgba(125,211,252,.12); }
+    .type-tag.vocabulary { color: var(--amber); background: rgba(251,191,36,.12); }
+    .type-tag.phrasal_verb { color: #c4b5fd; background: rgba(167,139,250,.13); }
+    .export-row { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+    .export-note { margin-top: 9px; color: var(--muted); font-size: .82rem; }
+    .review-bridge { margin-top: 16px; padding: 16px; border: 1px solid #3b5d75; border-radius: 16px; background: linear-gradient(145deg, rgba(125,211,252,.07), rgba(94,234,212,.04)); }
+    .review-bridge h3 { font-size: 1.08rem; }
+    .review-bridge > p { margin-top: 5px; color: var(--muted); font-size: .9rem; }
+    .review-bridge textarea { min-height: 145px; margin-top: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .82rem; }
+    .review-count { color: var(--teal); font-size: .86rem; font-weight: 800; align-self: center; }
+    .review-result { margin-top: 10px; padding: 10px 11px; border-left: 3px solid var(--teal); border-radius: 0 10px 10px 0; background: rgba(94,234,212,.07); color: #cfe3f1; font-size: .86rem; }
+    .review-result.minor { border-color: var(--amber); background: rgba(251,191,36,.07); }
+    .review-result.major { border-color: var(--red); background: rgba(253,164,175,.07); }
+    .review-result strong { display: block; margin-bottom: 3px; }
+    .review-result small { margin-top: 4px; }
+    .review-result .finalize-btn { display: inline-block; margin-top: 10px; border-color: rgba(94,234,212,.45); background: rgba(94,234,212,.12); color: var(--teal); }
+    .date-stamp { color: #8fb0c5 !important; font-size: .78rem; }
+    .toast { position: fixed; z-index: 1000; left: 50%; bottom: 24px; width: min(92vw, 560px); padding: 14px 18px; border: 1px solid var(--teal); border-radius: 14px; background: #102d35; color: #ecfeff; box-shadow: 0 18px 55px rgba(0,0,0,.45); font-weight: 800; text-align: center; transform: translate(-50%, 24px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    .toast.error { border-color: var(--red); background: #3a1822; }
+
+    .study-layout { display: grid; grid-template-columns: minmax(230px,.6fr) minmax(0,1.4fr); gap: 20px; }
+    .study-controls { display: grid; gap: 11px; align-content: start; }
+    .study-overview { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+    .study-overview div { padding: 10px; border: 1px solid var(--line); border-radius: 11px; background: #0a1825; text-align: center; }
+    .study-overview strong, .study-overview small { display: block; }
+    .study-overview strong { color: var(--teal); font-size: 1.2rem; }
+    .study-overview small { color: var(--muted); font-size: .72rem; }
+    .study-surface { min-height: 330px; display: grid; place-items: center; padding: 20px; border: 1px solid var(--line); border-radius: 17px; background: linear-gradient(145deg, #0a1825, #10283a); }
+    .study-card { width: min(100%, 650px); text-align: center; }
+    .study-card .prompt { color: var(--muted); font-size: .82rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .study-card .front { margin-top: 14px; font-size: clamp(1.55rem,4vw,2.5rem); line-height: 1.16; letter-spacing: -.03em; }
+    .study-task { margin: 17px auto 0; padding: 15px 17px; border-left: 3px solid var(--teal); border-radius: 0 12px 12px 0; background: rgba(94,234,212,.07); color: #e6f5ff; font-size: clamp(1.05rem,2.4vw,1.35rem); line-height: 1.45; text-align: left; }
+    .study-response { margin-top: 15px; text-align: left; }
+    .study-response textarea { min-height: 92px; }
+    .study-answer-label { display: block; color: var(--teal); font-size: .76rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+    .study-answer-copy { display: block; margin-top: 6px; }
+    .study-quality-note { margin-top: 12px; padding: 10px 12px; border-left: 3px solid var(--amber); border-radius: 0 10px 10px 0; background: rgba(251,191,36,.07); color: #d7e5ef; font-size: .84rem; line-height: 1.45; text-align: left; }
+    .study-personal { display: grid; gap: 7px; margin-top: 15px; text-align: left; }
+    .study-personal span { color: var(--muted); font-size: .85rem; font-weight: 800; }
+    .study-personal textarea { min-height: 76px; }
+    .study-card .back { display: none; margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 1.08rem; color: #d8ebf7; }
+    .study-card.revealed .back { display: block; }
+    .study-example { margin-top: 11px; color: var(--muted); font-style: italic; }
+    .quiz-options { display: grid; gap: 8px; margin-top: 18px; text-align: left; }
+    .quiz-option { width: 100%; border: 1px solid var(--line); border-radius: 11px; padding: 10px 12px; background: #102235; color: var(--ink); text-align: left; }
+    .quiz-option:hover { border-color: var(--blue); }
+    .quiz-option.correct { border-color: var(--teal); background: rgba(94,234,212,.14); }
+    .quiz-option.wrong { border-color: var(--red); background: rgba(253,164,175,.12); }
+    .study-status { color: var(--muted); font-size: .9rem; }
+
+    .dictation-layout { display: grid; grid-template-columns: minmax(245px,.58fr) minmax(0,1.42fr); gap: 20px; }
+    .dictation-controls { display: grid; gap: 12px; align-content: start; }
+    .dictation-surface { min-height: 390px; display: grid; place-items: center; padding: 22px; border: 1px solid var(--line); border-radius: 17px; background: linear-gradient(145deg, #081624, #10283a); }
+    .dictation-card { width: min(100%, 690px); }
+    .dictation-kicker { color: var(--teal); font-size: .78rem; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; }
+    .dictation-word { margin-top: 12px; font-size: clamp(2rem,5vw,3.4rem); letter-spacing: -.04em; }
+    .dictation-sentence { margin-top: 12px; font-size: clamp(1.25rem,3vw,1.85rem); line-height: 1.35; }
+    .dictation-answer { margin-top: 20px; }
+    .dictation-answer input { font-size: 1.15rem; }
+    .dictation-options { display: grid; gap: 9px; margin-top: 20px; }
+    .dictation-feedback { display: grid; gap: 5px; margin-top: 16px; min-height: 1.5em; }
+    .dictation-feedback.correct, .dictation-feedback.wrong { padding: 13px; border-left: 3px solid var(--teal); border-radius: 0 11px 11px 0; background: rgba(94,234,212,.08); }
+    .dictation-feedback.wrong { border-color: var(--red); background: rgba(253,164,175,.08); }
+    .dictation-feedback span, .dictation-feedback small { display: block; color: var(--muted); }
+    .dictation-feedback .btn { width: fit-content; margin-top: 8px; }
+    .dictation-history { margin-top: 8px; color: var(--amber); font-size: .86rem; }
+    .listen-button { display: inline-flex; align-items: center; gap: 10px; margin-top: 16px; padding: 15px 19px; border: 1px solid var(--teal); border-radius: 999px; background: rgba(94,234,212,.12); color: var(--ink); font-weight: 900; }
+    .listen-button:hover { background: rgba(94,234,212,.2); }
+    .trouble-list { display: grid; gap: 7px; margin-top: 10px; }
+    .trouble-word { padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; background: #0a1825; }
+    .trouble-word strong, .trouble-word small { display: block; }
+    .trouble-word small { margin-top: 2px; color: var(--muted); }
+    .spelling-feedback { border-left-color: var(--amber); }
+
+    .practice-layout { display: grid; grid-template-columns: minmax(280px,.72fr) minmax(0,1.28fr); gap: 20px; }
+    .practice-setup, .practice-workspace { display: grid; gap: 13px; align-content: start; }
+    .practice-setup { padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: #0a1825; }
+    .practice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+    .practice-status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .84rem; }
+    .status-light { width: 9px; height: 9px; border-radius: 50%; background: var(--amber); box-shadow: 0 0 0 4px rgba(251,191,36,.08); }
+    .status-light.ready { background: var(--teal); box-shadow: 0 0 0 4px rgba(94,234,212,.09); }
+    .practice-targets { display: grid; gap: 7px; max-height: 260px; overflow: auto; padding-right: 3px; }
+    .practice-target { display: grid; grid-template-columns: auto 1fr; gap: 9px; align-items: start; padding: 9px 10px; border: 1px solid var(--line); border-radius: 10px; color: #cfe3f1; font-size: .84rem; }
+    .practice-target input { margin-top: 3px; accent-color: var(--teal); }
+    .practice-target small { display: block; color: var(--muted); }
+    .practice-chat { min-height: 340px; max-height: 560px; overflow: auto; display: grid; gap: 10px; align-content: start; padding: 15px; border: 1px solid var(--line); border-radius: 16px; background: #081624; }
+    .practice-message { max-width: 88%; padding: 11px 13px; border-radius: 14px; white-space: pre-wrap; }
+    .practice-message.assistant { justify-self: start; background: #142b3e; border: 1px solid #31516a; }
+    .practice-message.user { justify-self: end; background: rgba(15,118,110,.24); border: 1px solid var(--teal-deep); }
+    .practice-message.system { max-width: 100%; justify-self: stretch; color: var(--muted); text-align: center; font-size: .82rem; }
+    .practice-composer { display: grid; grid-template-columns: 1fr auto; gap: 9px; align-items: end; }
+    .practice-composer textarea { min-height: 82px; }
+    .practice-review { display: grid; gap: 11px; }
+    .score-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(118px,1fr)); gap: 8px; }
+    .score-card { padding: 11px; border: 1px solid var(--line); border-radius: 11px; background: #102235; }
+    .score-card span { display: block; color: var(--muted); font-size: .7rem; font-weight: 800; text-transform: uppercase; }
+    .score-card strong { font-size: 1.35rem; }
+    .proposal { padding: 12px; border-left: 3px solid var(--teal); border-radius: 0 11px 11px 0; background: #102235; }
+    .proposal p, .proposal small { display: block; margin-top: 4px; color: var(--muted); }
+    .practice-added-banner { display: flex; align-items: center; gap: 9px; padding: 13px 15px; border: 1px solid rgba(94,234,212,.45); border-radius: 12px; background: rgba(94,234,212,.1); color: var(--teal); font-weight: 850; }
+    .practice-added-banner b { display: grid; place-items: center; flex: 0 0 25px; width: 25px; height: 25px; border-radius: 50%; background: var(--teal); color: #06201e; }
+    .practice-fallback { padding: 15px; border: 1px solid #4a5f73; border-radius: 14px; background: rgba(125,211,252,.04); }
+    .practice-fallback textarea { min-height: 130px; margin-top: 10px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .8rem; }
+    .practice-history { display: grid; gap: 7px; }
+    .practice-history-item { padding: 10px 11px; border: 1px solid var(--line); border-radius: 10px; background: #0a1825; }
+    .practice-history-item small { display: block; margin-top: 3px; color: var(--muted); }
+    .cost-note { color: var(--muted); font-size: .77rem; }
+
+    .privacy { margin-top: 12px; color: var(--muted); font-size: .78rem; text-align: center; }
+
+    @media (max-width: 920px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { position: static; grid-template-columns: 1fr 1fr; }
+      .progress-layout, .library-layout, .study-layout, .dictation-layout, .handoff-layout { grid-template-columns: 1fr; }
+      .schedule-layout, .writing-layout, .practice-layout { grid-template-columns: 1fr; }
+      .session-layout { grid-template-columns: 1fr; }
+      .analytics-summary { grid-template-columns: repeat(3,minmax(0,1fr)); }
+      .analytics-grid { grid-template-columns: 1fr; }
+      .year-calendar { grid-template-columns: repeat(2,minmax(0,1fr)); }
+    }
+    @media (max-width: 680px) {
+      .shell { width: min(100% - 20px, 1240px); padding-top: 18px; }
+      .topbar { display: block; }
+      .top-actions { justify-items: start; margin-top: 16px; }
+      .date-badge { display: inline-block; }
+      .summary-strip { grid-template-columns: 1fr 1fr; }
+      .activity-grid, .notes-grid, .side, .resources, .library-tools { grid-template-columns: 1fr; }
+      .activity { grid-template-columns: auto 1fr 68px; }
+      .jump-nav { margin-inline: -2px; padding: 7px; gap: 5px; border-radius: 13px; }
+      .jump-nav a { padding: 8px 10px; font-size: .82rem; }
+      .progress-dashboard { gap: 12px; padding: 10px; }
+      .calendar-shell, .analytics-card { padding: 10px; border-radius: 13px; }
+      .calendar-toolbar { align-items: stretch; }
+      .calendar-nav strong { width: 100%; order: -1; text-align: left; }
+      .activity-legend { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 6px 9px; font-size: .7rem; }
+      .calendar-weekdays, .calendar-grid { gap: 3px; }
+      .calendar-weekdays { font-size: .58rem; }
+      .calendar-day { min-height: 58px; padding: 5px; border-radius: 8px; }
+      .calendar-day-number { display: block; font-size: .7rem; }
+      .calendar-minutes, .calendar-additions { display: none; }
+      .activity-dots { gap: 3px; margin-top: 6px; }
+      .activity-dot { width: 5px; height: 5px; }
+      .day-activity-list, .year-calendar { grid-template-columns: 1fr; }
+      .weekly-schedule, .writing-meta, .self-check, .practice-grid, .practice-composer { grid-template-columns: 1fr; }
+      .session-meta, .session-source, .session-tools { grid-template-columns: 1fr; }
+      .analytics-summary { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .analytics-stat { min-width: 0; padding: 10px; }
+      .panel-head { align-items: flex-start; }
+      .panel-body { padding: 17px; }
+      .history th:nth-child(3), .history td:nth-child(3) { display: none; }
+      #historyWrap { max-width: 100%; overflow-x: auto; }
+    }
+    .btn[disabled], .icon-btn[disabled] { cursor: not-allowed; opacity: .55; }
+    a.btn { display: inline-block; text-decoration: none; }
+    .btn.danger { border-color: var(--red); background: rgba(253,164,175,.12); color: var(--red); }
+    .ai-hint { color: var(--muted); font-size: .8rem; align-self: center; }
+    .settings-layout { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 18px; align-items: start; }
+    .settings-card { display: grid; gap: 12px; min-width: 0; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: #0a1825; }
+    .settings-card h3 { font-size: 1.12rem; }
+    .settings-card .eyebrow { margin-bottom: 0; }
+    .settings-wide { grid-column: 1 / -1; }
+    .settings-form { display: grid; gap: 12px; }
+    .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+    .account-chip { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--line); border-radius: 13px; background: #0c1d2b; }
+    .account-chip img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; }
+    .account-chip strong, .account-chip small { display: block; overflow-wrap: anywhere; }
+    .account-chip small { color: var(--muted); }
+    .ai-connection-list { display: grid; gap: 8px; }
+    .ai-connection { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 13px; border: 1px solid var(--line); border-radius: 12px; background: #0c1d2b; }
+    .ai-connection.default { border-color: var(--teal-deep); box-shadow: inset 0 0 0 1px rgba(94,234,212,.15); }
+    .ai-connection strong, .ai-connection small { display: block; overflow-wrap: anywhere; }
+    .ai-connection small { color: var(--muted); }
+    .ai-connection .library-actions { max-width: none; }
+    .default-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: rgba(94,234,212,.15); color: var(--teal); font-size: .72rem; font-weight: 900; vertical-align: middle; }
+    .danger-zone { border: 1px solid rgba(253,164,175,.35); border-radius: 12px; }
+    .danger-zone summary { padding: 11px 13px; color: var(--red); }
+    .danger-zone > div { display: grid; gap: 10px; padding: 0 13px 13px; }
+    .steps { margin: 0; padding-left: 20px; color: #cfe3f1; font-size: .9rem; }
+    .steps li + li { margin-top: 4px; }
+    .site-footer { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 14px; margin-top: 14px; color: var(--muted); font-size: .8rem; }
+    @media (max-width: 920px) { .settings-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 680px) { .settings-grid { grid-template-columns: 1fr; } .settings-card { padding: 14px; } }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow" id="varietyEyebrow">Natural American English</p>
+        <h1>Fluency tracker</h1>
+        <p class="subtitle">Mix activities freely. Grammar and a podcast can happen on the same day; a rest day is allowed. What matters is returning and actively using what you learn.</p>
+      </div>
+      <div class="top-actions">
+        <div class="date-badge" id="todayBadge"></div>
+        <button class="sync-button" id="openSyncBtn" type="button" aria-label="Account and sync settings"><span class="sync-dot" aria-hidden="true"></span><span id="syncButtonLabel">Device only</span></button>
+      </div>
+    </header>
+
+    <nav class="jump-nav" aria-label="Tracker sections" role="tablist">
+      <a href="#today" id="tab-today" role="tab" aria-controls="today-view" data-tab="today">Today</a>
+      <a href="#practice" id="tab-practice" role="tab" aria-controls="practice" data-tab="practice">Practice Zone</a>
+      <a href="#schedule" id="tab-schedule" role="tab" aria-controls="schedule" data-tab="schedule">Schedule</a>
+      <a href="#sessions" id="tab-sessions" role="tab" aria-controls="sessions" data-tab="sessions">Activity sessions</a>
+      <a href="#library" id="tab-library" role="tab" aria-controls="library" data-tab="library">Learning library</a>
+      <a href="#writing" id="tab-writing" role="tab" aria-controls="writing" data-tab="writing">Writing Lab</a>
+      <a href="#study" id="tab-study" role="tab" aria-controls="study" data-tab="study">Flashcards &amp; quiz</a>
+      <a href="#spelling" id="tab-spelling" role="tab" aria-controls="spelling" data-tab="spelling">Spelling &amp; dictation</a>
+      <a href="#progress" id="tab-progress" role="tab" aria-controls="progress" data-tab="progress">Progress</a>
+      <a href="#handoff" id="tab-handoff" role="tab" aria-controls="handoff" data-tab="handoff">AI handoff</a>
+      <a href="#settings" id="tab-settings" role="tab" aria-controls="settings" data-tab="settings">Settings</a>
+    </nav>
+
+    <section class="summary-strip" aria-label="Last seven days summary">
+      <div class="metric"><span>Practice days · last 7</span><strong id="metricDays">0</strong></div>
+      <div class="metric"><span>Total minutes · last 7</span><strong id="metricMinutes">0</strong></div>
+      <div class="metric"><span>Saved library items</span><strong id="metricChunks">0</strong></div>
+      <div class="metric"><span>Current return streak</span><strong id="metricStreak">0 days</strong></div>
+    </section>
+
+    <div class="layout" id="today-view" data-tab-panel="today" role="tabpanel" aria-labelledby="tab-today">
+      <section class="panel" id="today" aria-labelledby="dailyTitle">
+        <div class="panel-head">
+          <div><h2 id="dailyTitle">Daily check-in</h2><p class="help">Log what you actually did—not what the weekday says.</p></div>
+        </div>
+        <div class="panel-body">
+          <div class="date-row">
+            <label class="field">
+              <span>Date</span>
+              <input type="date" id="entryDate" />
+            </label>
+            <div class="field">
+              <span>How was the day?</span>
+              <div class="status-group" role="radiogroup" aria-label="Practice status">
+                <label class="status-option"><input type="radio" name="status" value="practiced" checked /><span>Practiced</span></label>
+                <label class="status-option"><input type="radio" name="status" value="light" /><span>Light day</span></label>
+                <label class="status-option"><input type="radio" name="status" value="rest" /><span>Rest / skipped</span></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="section-label"><h3>What did you do?</h3><p class="help">Choose any combination and enter the real minutes.</p></div>
+          <div class="activity-grid" id="activityGrid"></div>
+
+          <div class="section-label"><h3>What should we discuss?</h3><p class="help">These notes become a message you can paste into any AI chat.</p></div>
+          <div class="notes-grid">
+            <label class="field">
+              <span>Useful phrases or chunks · up to 3</span>
+              <div class="phrase-stack">
+                <input type="text" class="phrase" placeholder="e.g. It finally clicked for me" />
+                <input type="text" class="phrase" placeholder="e.g. I’m on the fence about it" />
+                <input type="text" class="phrase" placeholder="e.g. That caught me off guard" />
+              </div>
+            </label>
+            <label class="field">
+              <span>Grammar topic or question</span>
+              <textarea id="question" placeholder="e.g. When should I say ‘I’ve been doing’ instead of ‘I did’?"></textarea>
+            </label>
+            <label class="field">
+              <span>Correction or recurring mistake</span>
+              <textarea id="correction" placeholder="e.g. I said ‘discuss about’; the natural form is ‘discuss’. "></textarea>
+            </label>
+            <label class="field">
+              <span>Quick reflection</span>
+              <textarea id="notes" placeholder="What felt easy, difficult, or worth practicing again?"></textarea>
+            </label>
+          </div>
+
+          <div class="action-row">
+            <button class="btn primary" id="saveBtn" type="button">Save this day</button>
+            <button class="btn" id="savePhrasesBtn" type="button">Add phrases to library</button>
+            <button class="btn ghost" id="clearBtn" type="button">Clear this form</button>
+            <span class="save-state" id="saveState" role="status" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side">
+        <section class="panel" aria-labelledby="messageTitle">
+          <div class="panel-head"><div><h2 id="messageTitle">Message for your AI chat</h2><p class="help">Your questions and phrases stay together.</p></div></div>
+          <div class="panel-body">
+            <textarea class="chat-box" id="chatMessage" readonly aria-label="Prepared daily check-in message"></textarea>
+            <div class="action-row">
+              <button class="btn primary" id="copyBtn" type="button">Copy for AI chat</button>
+            </div>
+            <p class="tip"><b>Tip</b><span>Paste this into ChatGPT, Claude, Gemini, or any AI assistant. It will answer your question, correct your examples, and suggest one focus for tomorrow.</span></p>
+          </div>
+        </section>
+
+        <section class="panel" aria-labelledby="routineTitle">
+          <div class="panel-head"><div><h2 id="routineTitle">Choose today’s size</h2><p class="help">Keep the day’s priority, then shorten or expand it as needed.</p></div></div>
+          <div class="panel-body routine-list">
+            <div class="routine"><strong>Full · 45–60 min</strong><small>Complete the priority activities, then add speaking, reading, or a 100–150 word draft.</small></div>
+            <div class="routine"><strong>Standard · 25–35 min</strong><small>Complete the main priority plus one short output activity: speaking or writing.</small></div>
+            <div class="routine"><strong>Catch-up · 5 min</strong><small>Listen for 2 minutes, shadow one sentence, then give a 2-minute spoken summary.</small></div>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <div class="lower">
+      <section class="panel" id="schedule" data-tab-panel="schedule" role="tabpanel" aria-labelledby="tab-schedule" hidden>
+        <div class="panel-head"><div><h2 id="scheduleTitle">Weekly priorities</h2><p class="help">Follow the main focus, combine activities when useful, and move unfinished work to another day.</p></div></div>
+        <div class="panel-body schedule-layout">
+          <div class="today-priority" id="todayPriority"></div>
+          <div class="weekly-schedule" id="weeklySchedule"></div>
+        </div>
+      </section>
+
+      <section class="panel" id="sessions" data-tab-panel="sessions" role="tabpanel" aria-labelledby="tab-sessions" hidden>
+        <div class="panel-head">
+          <div><h2 id="sessionsTitle">Activity Session Log</h2><p class="help">Record what you actually listened to, read, shadowed, or discussed—not only the minutes.</p></div>
+          <strong id="sessionCount">0 sessions</strong>
+        </div>
+        <div class="panel-body session-layout">
+          <div class="session-form">
+            <input type="hidden" id="sessionEditId" />
+            <div class="session-meta">
+              <label class="field"><span>Date</span><input type="date" id="sessionDate" /></label>
+              <label class="field"><span>Activity</span><select id="sessionType"><option value="listening">Listening</option><option value="reading">Reading</option><option value="shadowing">Shadowing</option><option value="speaking">Speaking</option></select></label>
+              <label class="field"><span>Minutes</span><input type="number" id="sessionMinutes" min="0" max="300" step="1" value="15" /></label>
+              <label class="field"><span>Confidence · 1–5</span><select id="sessionRating"><option value="1">1</option><option value="2">2</option><option value="3" selected>3</option><option value="4">4</option><option value="5">5</option></select></label>
+            </div>
+            <div class="session-source">
+              <label class="field"><span id="sessionSourceLabel">Podcast or video title</span><input type="text" id="sessionSource" placeholder="What did you use?" /></label>
+              <label class="field"><span>Link · optional</span><input type="url" id="sessionUrl" placeholder="https://..." /></label>
+            </div>
+            <div class="session-source">
+              <label class="field"><span id="sessionDetailLabel">Episode or timestamps</span><input type="text" id="sessionDetail" placeholder="e.g. 08:20–10:05" /></label>
+              <label class="field"><span id="sessionQuantityLabel">Useful phrases found</span><input type="number" id="sessionQuantity" min="0" max="999" step="1" value="0" /></label>
+            </div>
+            <label class="field"><span id="sessionEvidenceLabel">Your summary or evidence</span><textarea class="session-evidence" id="sessionEvidence" placeholder="Summarize what you understood or describe what you tried to say."></textarea></label>
+            <label class="field"><span>Useful phrases · one per line</span><textarea id="sessionPhrases" placeholder="Write the full phrase, not only one word."></textarea></label>
+            <label class="field"><span>What was unclear or difficult?</span><textarea id="sessionQuestion" placeholder="Add a timestamp, sentence, pronunciation problem, or question for your AI coach."></textarea></label>
+            <section class="recorder" id="voiceRecorder" hidden>
+              <h3>Optional 30–60 second voice clip</h3>
+              <p class="recorder-note">Record, download the clip, and attach it in your AI chat with the copied review request if that AI accepts audio. Audio is not uploaded or stored by this website.</p>
+              <div class="action-row" style="margin-top:10px">
+                <button class="btn" id="startRecordingBtn" type="button">Start recording</button>
+                <button class="btn" id="stopRecordingBtn" type="button" disabled>Stop</button>
+                <a class="btn ghost" id="downloadRecordingBtn" hidden>Download clip</a>
+              </div>
+              <audio id="recordingPlayback" controls hidden></audio>
+              <span class="save-state" id="recordingState" role="status" aria-live="polite"></span>
+            </section>
+            <div class="action-row">
+              <button class="btn primary" id="saveSessionBtn" type="button">Save session</button>
+              <button class="btn" id="aiSessionReviewBtn" type="button" data-ai-action>Review with my AI</button>
+              <button class="btn" id="copySessionReviewBtn" type="button">Copy prompt</button>
+              <button class="btn ghost" id="clearSessionBtn" type="button">Clear form</button>
+              <span class="save-state" id="sessionSaveState" role="status" aria-live="polite"></span>
+            </div>
+            <section class="session-review-box" aria-labelledby="sessionReviewTitle">
+              <h3 id="sessionReviewTitle">Paste the AI’s activity feedback</h3>
+              <p class="help">Used Copy prompt? Paste the JSON your AI chat returns, then apply it to this session.</p>
+              <textarea id="sessionReviewPackage" aria-label="Paste activity review package" placeholder="Paste the activity-review JSON from your AI chat here."></textarea>
+              <div class="action-row"><button class="btn primary" id="applySessionReviewBtn" type="button">Apply activity feedback</button></div>
+            </section>
+            <div class="session-feedback" id="sessionFeedback"></div>
+          </div>
+          <aside class="session-side">
+            <div class="session-tools">
+              <select id="sessionFilter" aria-label="Filter sessions by activity"><option value="all">All activities</option><option value="listening">Listening</option><option value="reading">Reading</option><option value="shadowing">Shadowing</option><option value="speaking">Speaking</option></select>
+              <input type="search" id="sessionSearch" placeholder="Search sessions" aria-label="Search activity sessions" />
+            </div>
+            <div class="writing-history" id="sessionHistory"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel" id="library" data-tab-panel="library" role="tabpanel" aria-labelledby="tab-library" hidden>
+        <div class="panel-head">
+          <div><h2 id="libraryTitle">Learning library</h2><p class="help">Keep the English you want to use again—not every unfamiliar word.</p></div>
+          <strong id="libraryCount">0 items</strong>
+        </div>
+        <div class="panel-body library-layout">
+          <form class="library-form" id="libraryForm">
+            <input type="hidden" id="libraryEditId" />
+            <label class="field"><span>Type</span><select id="libraryType"><option value="collocation">Collocation</option><option value="phrasal_verb">Phrasal verb</option><option value="grammar">Grammar</option><option value="vocabulary">Vocabulary</option></select></label>
+            <label class="field"><span>Expression or grammar point</span><input type="text" id="libraryFront" required placeholder="e.g. raise concerns about" /></label>
+            <label class="field"><span>Meaning or rule</span><textarea id="libraryBack" required placeholder="Meaning, pattern, or grammar explanation"></textarea></label>
+            <label class="field"><span>Your natural example</span><textarea id="libraryExample" placeholder="Write something true about your life"></textarea></label>
+            <label class="field"><span>Source</span><input type="text" id="librarySource" placeholder="e.g. Collocations in Use, Unit 12" /></label>
+            <label class="field"><span>Tags · separated by commas</span><input type="text" id="libraryTags" placeholder="work, conversation, review" /></label>
+            <div class="action-row" style="margin-top:2px">
+              <button class="btn primary" type="submit" id="librarySaveBtn" value="save">Add to library</button>
+              <button class="btn" type="submit" id="librarySaveReviewBtn" value="review">Save &amp; prepare review</button>
+              <button class="btn ghost" type="button" id="libraryCancelBtn" hidden>Cancel edit</button>
+            </div>
+            <span class="save-state" id="librarySaveState" role="status" aria-live="polite"></span>
+          </form>
+          <div>
+            <div class="library-tools">
+              <select id="libraryFilter" aria-label="Filter library by type"><option value="all">All types</option><option value="collocation">Collocations</option><option value="phrasal_verb">Phrasal verbs</option><option value="grammar">Grammar</option><option value="vocabulary">Vocabulary</option></select>
+              <select id="libraryDateFilter" aria-label="Filter library by creation date"><option value="all">All dates</option><option value="today">Created today</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option></select>
+              <input type="text" id="librarySearch" placeholder="Search your library" aria-label="Search your learning library" />
+            </div>
+            <div class="library-list" id="libraryList"></div>
+            <details class="library-trash" id="libraryTrash">
+              <summary><span>Trash · recoverable items</span><strong id="libraryTrashCount">0</strong></summary>
+              <div class="library-trash-list" id="libraryTrashList"></div>
+            </details>
+            <div class="export-row">
+              <button class="btn" id="ankiExportBtn" type="button">Download for Anki</button>
+              <button class="btn" id="notebookExportBtn" type="button">Download for NotebookLM</button>
+            </div>
+            <p class="export-note"><strong>Anki:</strong> choose File → Import and select the downloaded text file. <strong>NotebookLM:</strong> choose Add sources, upload the Markdown file, then use the suggested prompt inside it.</p>
+            <section class="review-bridge" aria-labelledby="reviewBridgeTitle">
+              <h3 id="reviewBridgeTitle">Check your examples with AI</h3>
+              <p>Select the items you want checked. Run the check with your connected AI, or copy the request into any AI chat and paste its JSON reply below to apply every correction.</p>
+              <div class="action-row" style="margin-top:12px">
+                <button class="btn" id="selectVisibleReviewBtn" type="button">Select visible items</button>
+                <button class="btn ghost" id="clearReviewBtn" type="button">Clear selection</button>
+                <button class="btn primary" id="aiReviewBtn" type="button" data-ai-action>Check with my AI</button>
+                <button class="btn" id="copyReviewBtn" type="button">Copy prompt</button>
+                <span class="review-count" id="reviewSelectionCount">0 selected</span>
+              </div>
+              <textarea id="reviewPackageInput" aria-label="Paste review package" placeholder="Used Copy prompt? Paste the JSON review your AI chat returns here."></textarea>
+              <div class="action-row">
+                <button class="btn primary" id="applyReviewBtn" type="button">Apply corrections</button>
+                <span class="save-state" id="reviewApplyState" role="status" aria-live="polite"></span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="writing" data-tab-panel="writing" role="tabpanel" aria-labelledby="tab-writing" hidden>
+        <div class="panel-head">
+          <div><h2 id="writingTitle">Writing Lab</h2><p class="help">Draft freely, check the most important patterns, then rewrite without copying.</p></div>
+          <strong id="writingCount">0 drafts</strong>
+        </div>
+        <div class="panel-body writing-layout">
+          <div class="writing-workspace">
+            <div class="writing-meta">
+              <label class="field"><span>Date</span><input type="date" id="writingDate" /></label>
+              <label class="field"><span>Writing type</span><select id="writingType"><option value="casual_message">Casual message</option><option value="email">Email</option><option value="journal">Journal</option><option value="summary">Summary</option><option value="opinion">Opinion</option><option value="professional">Professional writing</option></select></label>
+              <label class="field"><span>Word target</span><input type="number" id="writingTarget" min="50" max="1000" step="10" value="150" /></label>
+            </div>
+            <label class="field"><span>Prompt or situation</span><textarea id="writingPrompt" placeholder="e.g. Explain whether working from home improves people’s lives."></textarea></label>
+            <label class="field"><span>Library items to use · separated by commas</span><input type="text" id="writingTargets" placeholder="e.g. on the other hand, carry out, raise concerns" /></label>
+            <label class="field"><span>First draft</span><textarea class="writing-draft" id="writingDraft" placeholder="Write continuously first. Do not stop to correct every sentence."></textarea></label>
+            <div class="writing-count" id="writingWordCount">0 words</div>
+            <div>
+              <h3>Self-check before sending</h3>
+              <div class="self-check" id="writingChecklist" style="margin-top:9px">
+                <label><input type="checkbox" value="articles" /> Articles: a, an, and the</label>
+                <label><input type="checkbox" value="verbs" /> Verb tense and agreement</label>
+                <label><input type="checkbox" value="prepositions" /> Prepositions</label>
+                <label><input type="checkbox" value="naturalness" /> Natural phrases and register</label>
+              </div>
+            </div>
+            <div class="action-row">
+              <button class="btn primary" id="saveWritingBtn" type="button">Save draft</button>
+              <button class="btn" id="aiWritingReviewBtn" type="button" data-ai-action>Review with my AI</button>
+              <button class="btn" id="copyWritingReviewBtn" type="button">Copy prompt</button>
+              <button class="btn ghost" id="clearWritingBtn" type="button">Clear form</button>
+              <span class="save-state" id="writingSaveState" role="status" aria-live="polite"></span>
+            </div>
+            <section class="writing-review-box" aria-labelledby="writingReviewTitle">
+              <h3 id="writingReviewTitle">Paste the AI’s writing feedback</h3>
+              <p class="help">Used Copy prompt? Paste the JSON your AI chat returns, then apply it.</p>
+              <textarea id="writingReviewPackage" aria-label="Paste writing review package" placeholder="Paste the writing-review JSON from your AI chat here."></textarea>
+              <div class="action-row">
+                <button class="btn primary" id="applyWritingReviewBtn" type="button">Apply writing feedback</button>
+              </div>
+            </section>
+            <div class="writing-feedback" id="writingFeedback"></div>
+          </div>
+          <aside class="writing-side">
+            <div class="library-form">
+              <h3>Writing routine</h3>
+              <p class="help">1. Draft without stopping.<br />2. Self-check once.<br />3. Review it with your AI.<br />4. Study three corrections.<br />5. Rewrite from memory.</p>
+            </div>
+            <div>
+              <h3>Saved writing</h3>
+              <div class="writing-history" id="writingHistory" style="margin-top:10px"></div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="panel" id="practice" data-tab-panel="practice" role="tabpanel" aria-labelledby="tab-practice" hidden>
+        <div class="panel-head">
+          <div><h2 id="practiceTitle">Practice Zone</h2><p class="help">Practice a real conversation or short piece of writing, use your saved English, and turn useful mistakes into new learning cards.</p></div>
+          <strong id="practiceSessionCount">0 sessions</strong>
+        </div>
+        <div class="panel-body practice-layout">
+          <aside class="practice-setup">
+            <div class="practice-status"><i class="status-light" id="practiceApiLight"></i><span id="practiceApiStatus">Checking AI availability…</span></div>
+            <div class="practice-grid">
+              <label class="field"><span>Practice mode</span><select id="practiceMode"><option value="conversation">Guided conversation</option><option value="small_talk">Small talk with a stranger</option><option value="friend_chat">Casual chat with a friend</option><option value="roleplay">Role-play</option><option value="short_writing">Short writing</option><option value="grammar">Grammar practice</option><option value="collocation">Collocation practice</option></select><small class="help" id="practiceModeHelp">Build a natural conversation through interesting follow-up questions.</small></label>
+              <label class="field"><span>Feedback timing</span><select id="practiceFeedback"><option value="end">Natural conversation · feedback at the end</option><option value="coach">Coach mode · brief corrections as we go</option></select></label>
+            </div>
+            <label class="field"><span>Topic</span><select id="practiceTopic"><option value="surprise_me">Surprise me</option><option value="daily_life">Daily life</option><option value="work">Work and professional life</option><option value="culture">Culture and relationships</option><option value="books">Books and stories</option><option value="technology">Technology</option><option value="opinion">Opinion and debate</option></select></label>
+            <label class="field"><span>Optional situation or topic</span><input type="text" id="practiceCustomTopic" placeholder="e.g. Convince a friend to try your favorite restaurant" /></label>
+            <label class="field"><span>Session length</span><select id="practiceTurns"><option value="6">Quick · 6 replies</option><option value="10" selected>Standard · 10 replies</option><option value="14">Deep · 14 replies</option></select></label>
+            <div class="practice-grid">
+              <label class="field"><span>How should targets be chosen?</span><select id="practiceTargetMode"><option value="smart" selected>Smart mix · fits the topic</option><option value="random">Random mix · more variety</option><option value="manual">Manual · I will choose</option></select></label>
+              <label class="field"><span>Number of targets</span><select id="practiceTargetCount"><option value="3">3 targets</option><option value="4" selected>4 targets</option><option value="5">5 targets</option></select></label>
+            </div>
+            <div>
+              <span class="label">Learning targets</span>
+              <p class="help" id="practiceTargetHelp">Smart mix favors items that are due or difficult, then chooses expressions that naturally fit the conversation.</p>
+              <div class="action-row" style="margin-top:9px"><button class="btn" id="choosePracticeTargetsBtn" type="button">Choose a smart mix</button><span class="save-state" id="practiceTargetState" role="status" aria-live="polite"></span></div>
+              <div class="practice-targets" id="practiceTargets" style="margin-top:9px"></div>
+            </div>
+            <div class="action-row" style="margin-top:2px">
+              <button class="btn primary" id="startPracticeBtn" type="button">Start practice</button>
+              <button class="btn ghost" id="resetPracticeBtn" type="button">New session</button>
+            </div>
+            <p class="cost-note" id="practiceProviderNote">Live practice uses the AI you connect in Settings, billed by that provider. Without a connection, Start practice copies a prompt you can use in any AI chat.</p>
+            <div class="practice-history" id="practiceHistory"></div>
+          </aside>
+          <div class="practice-workspace">
+            <div class="practice-chat" id="practiceChat"><div class="empty">Choose a mode and targets, then start. No AI connected? Start practice copies a ready-made prompt for any AI chat.</div></div>
+            <div class="practice-composer">
+              <label class="field"><span>Your reply</span><textarea id="practiceInput" placeholder="Write naturally. Try to express the idea first; do not stop to perfect every sentence."></textarea></label>
+              <button class="btn primary" id="sendPracticeBtn" type="button" disabled>Send</button>
+            </div>
+            <div class="action-row" style="margin-top:0">
+              <button class="btn" id="finishPracticeBtn" type="button" disabled>Finish &amp; score</button>
+              <span class="save-state" id="practiceSaveState" role="status" aria-live="polite"></span>
+              <span class="cost-note" id="practiceCost">Tokens used: 0</span>
+            </div>
+            <section class="practice-fallback" aria-labelledby="practiceFallbackTitle">
+              <h3 id="practiceFallbackTitle">Practice in any AI chat · no API key needed</h3>
+              <ol class="steps" style="margin-top:8px">
+                <li>Choose your settings, then <strong>Copy practice prompt</strong>.</li>
+                <li>Paste it into ChatGPT, Claude, Gemini, or another assistant and have the conversation there. Type <strong>FINISH</strong> to end early.</li>
+                <li>Paste the JSON it returns below and apply it. Scores, corrections, and new learning cards are saved here.</li>
+              </ol>
+              <div class="action-row" style="margin-top:10px"><button class="btn primary" id="copyPracticePromptBtn" type="button">Copy practice prompt</button><button class="btn" id="copyPracticeBtn" type="button">Copy this session for review</button></div>
+              <textarea id="practicePromptOutput" readonly hidden aria-label="Practice prompt to copy manually"></textarea>
+              <textarea id="practiceReviewPackage" aria-label="Paste Practice Zone review package" placeholder="Paste the Practice Zone JSON from your AI chat here."></textarea>
+              <div class="action-row"><button class="btn primary" id="applyPracticeReviewBtn" type="button">Apply review</button></div>
+            </section>
+            <div class="practice-review" id="practiceReview"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="study" data-tab-panel="study" role="tabpanel" aria-labelledby="tab-study" hidden>
+        <div class="panel-head"><div><h2 id="studyTitle">Flashcards &amp; quiz</h2><p class="help">Practice producing natural English. Only reviewed or AI-created examples become sentence questions; unchecked examples stay out of your quiz.</p></div></div>
+        <div class="panel-body study-layout">
+          <div class="study-controls">
+            <div class="study-overview" id="studyOverview"></div>
+            <label class="field"><span>Card type</span><select id="studyFilter"><option value="all">Everything</option><option value="collocation">Collocations</option><option value="phrasal_verb">Phrasal verbs</option><option value="grammar">Grammar</option><option value="vocabulary">Vocabulary</option></select></label>
+            <label class="field"><span>Choose cards</span><select id="studyScope"><option value="due" selected>Due now · recommended</option><option value="today">Added today</option><option value="7">Added in the last 7 days</option><option value="all">All cards</option></select></label>
+            <button class="btn primary" id="startCardsBtn" type="button">Start active recall</button>
+            <button class="btn" id="startQuizBtn" type="button">Start application quiz</button>
+            <p class="study-status" id="studyStatus">Cards you have not studied yet are due now.</p>
+          </div>
+          <div class="study-surface" id="studySurface"><div class="empty">Your first card will appear here.</div></div>
+        </div>
+      </section>
+
+      <section class="panel" id="spelling" data-tab-panel="spelling" role="tabpanel" aria-labelledby="tab-spelling" hidden>
+        <div class="panel-head"><div><h2 id="spellingTitle">Spelling &amp; dictation</h2><p class="help">Mistakes return first. Correct words come back after a few days so you remember them without drilling the same list.</p></div></div>
+        <div class="panel-body dictation-layout">
+          <aside class="dictation-controls">
+            <div class="study-overview" id="spellingOverview"></div>
+            <label class="field"><span>Exercise</span><select id="spellingMode"><option value="mixed" selected>Mixed · recommended</option><option value="meaning">Choose the meaning · 4 options</option><option value="blank">Complete a sentence</option><option value="listen">Hear and type</option></select></label>
+            <label class="field"><span>Words to practice</span><select id="spellingScope"><option value="due" selected>Due words · mistakes first</option><option value="mistakes">Only mistake words</option><option value="all">All vocabulary</option></select></label>
+            <button class="btn primary" id="startSpellingBtn" type="button">Start 12-question round</button>
+            <p class="study-status" id="spellingStatus">New words and mistake words are due now.</p>
+            <div><h3>Words needing attention</h3><div class="trouble-list" id="spellingTroubleList"></div></div>
+          </aside>
+          <div class="dictation-surface" id="spellingSurface"><div class="empty">Start a round. Practice Zone spelling mistakes—such as <em>priotorize → prioritize</em>—will be placed at the front of this queue automatically.</div></div>
+        </div>
+      </section>
+
+      <section class="panel" id="progress" data-tab-panel="progress" role="tabpanel" aria-labelledby="tab-progress" hidden>
+        <div class="panel-head"><div><h2 id="progressTitle">Progress</h2><p class="help">A rest day remains visible. It does not erase your previous work.</p></div></div>
+        <div class="progress-dashboard">
+          <div class="calendar-shell">
+            <div class="calendar-toolbar">
+              <div class="view-switch" id="calendarViewSwitch" aria-label="Calendar view">
+                <button class="btn view-btn" type="button" data-calendar-view="day">Day</button>
+                <button class="btn view-btn" type="button" data-calendar-view="week">7 days</button>
+                <button class="btn view-btn active" type="button" data-calendar-view="month">Month</button>
+                <button class="btn view-btn" type="button" data-calendar-view="year">Year</button>
+              </div>
+              <div class="calendar-nav">
+                <button class="icon-btn" id="calendarPrev" type="button" aria-label="Previous period">←</button>
+                <strong id="calendarRangeLabel">This month</strong>
+                <button class="btn ghost" id="calendarToday" type="button">Today</button>
+                <button class="icon-btn" id="calendarNext" type="button" aria-label="Next period">→</button>
+              </div>
+            </div>
+            <div class="activity-legend" id="calendarLegend"></div>
+            <div id="calendarView"></div>
+          </div>
+          <div class="analytics-summary" id="analyticsSummary"></div>
+          <div class="analytics-grid">
+            <div class="analytics-card">
+              <h3>Practice minutes</h3>
+              <p class="help" id="histogramHelp">Each color represents a different practice activity.</p>
+              <div class="histogram" id="practiceHistogram"></div>
+            </div>
+            <div class="analytics-card">
+              <h3>Learning items added</h3>
+              <p class="help">New library items created during the selected period.</p>
+              <div class="addition-bars" id="libraryHistogram"></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel-body progress-layout">
+          <div>
+            <h3 id="coverageTitle">Activity days · selected period</h3>
+            <div class="coverage" id="coverage" style="margin-top:14px"></div>
+          </div>
+          <div>
+            <h3>Recent daily records</h3>
+            <div id="historyWrap" style="margin-top:9px"></div>
+          </div>
+        </div>
+        <details>
+          <summary>Books, podcasts, and study links</summary>
+          <div class="resources">
+            <a class="resource" href="https://podcasts.apple.com/us/podcast/no-stupid-questions/id1510056899" target="_blank" rel="noreferrer"><strong>No Stupid Questions</strong><small>Apple Podcasts</small></a>
+            <a class="resource" href="https://www.youtube.com/playlist?list=PLZz6EbWQ52msowlH5kGJCD0n925x-oujF" target="_blank" rel="noreferrer"><strong>No Stupid Questions</strong><small>YouTube</small></a>
+            <a class="resource" href="https://podcasts.apple.com/us/podcast/conan-obrien-needs-a-friend/id1438054347" target="_blank" rel="noreferrer"><strong>Conan O’Brien Needs a Friend</strong><small>Apple Podcasts</small></a>
+            <a class="resource" href="https://www.youtube.com/teamcoco" target="_blank" rel="noreferrer"><strong>Team Coco</strong><small>YouTube</small></a>
+            <a class="resource" href="https://shop.cambridge.org/english/product/2700216595" target="_blank" rel="noreferrer"><strong>Advanced Grammar in Use</strong><small>Use as a diagnostic reference</small></a>
+            <a class="resource" href="https://www.cambridgeone.org/" target="_blank" rel="noreferrer"><strong>Cambridge One</strong><small>Online exercises and tests</small></a>
+            <a class="resource" href="https://shop.cambridge.org/english/family/2100045352?nav_source=Our+Products" target="_blank" rel="noreferrer"><strong>English Collocations in Use</strong><small>Advanced</small></a>
+            <a class="resource" href="https://shop.cambridge.org/english/product/2700184742" target="_blank" rel="noreferrer"><strong>English Phrasal Verbs in Use</strong><small>Advanced</small></a>
+            <a class="resource" href="https://us.macmillan.com/books/9781250301703/thesilentpatient/" target="_blank" rel="noreferrer"><strong>The Silent Patient</strong><small>Reading practice</small></a>
+            <a class="resource" href="https://freakonomics.com/series/nsq/" target="_blank" rel="noreferrer"><strong>Podcast transcripts</strong><small>No Stupid Questions archive</small></a>
+          </div>
+        </details>
+      </section>
+
+      <section class="panel" id="handoff" data-tab-panel="handoff" role="tabpanel" aria-labelledby="tab-handoff" hidden>
+        <div class="panel-head">
+          <div><h2 id="handoffTitle">Project handoff</h2><p class="help">Give any AI chat your coaching preferences and latest tracker snapshot without carrying over a month-long transcript.</p></div>
+        </div>
+        <div class="panel-body handoff-layout">
+          <div class="handoff-guide">
+            <div class="handoff-step"><strong>1 · Generate the current brief</strong><small>This reads the practice saved in this browser. It does not upload private tracker data anywhere.</small></div>
+            <div class="handoff-step"><strong>2 · Start a new chat with any AI</strong><small>Paste the handoff at the beginning, or attach the downloaded Markdown file. It works with ChatGPT, Claude, Gemini, and other assistants.</small></div>
+            <div class="handoff-step"><strong>3 · Refresh whenever you need it</strong><small>Generate a new copy after your tracker changes. A pasted or downloaded handoff does not update itself.</small></div>
+            <label class="field"><span>Include recent progress</span><select id="handoffDays"><option value="7">Last 7 days</option><option value="30" selected>Last 30 days</option></select></label>
+            <div class="action-row" style="margin-top:2px">
+              <button class="btn" id="refreshHandoffBtn" type="button">Refresh preview</button>
+              <button class="btn primary" id="copyHandoffBtn" type="button">Copy for new chat</button>
+              <button class="btn" id="downloadHandoffBtn" type="button">Download .md</button>
+            </div>
+            <span class="save-state" id="handoffState" role="status" aria-live="polite"></span>
+          </div>
+          <div>
+            <label class="field"><span>Live project brief</span><textarea class="handoff-preview" id="handoffPreview" readonly aria-label="Current English fluency handoff"></textarea></label>
+            <p class="handoff-meta" id="handoffMeta"></p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" id="settings" data-tab-panel="settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+        <div class="panel-head">
+          <div><h2 id="settingsTitle">Settings</h2><p class="help">Your account, AI connection, learner profile, and backups.</p></div>
+        </div>
+        <div class="panel-body settings-layout">
+          <section class="settings-card" aria-labelledby="accountTitle">
+            <p class="eyebrow">Account</p>
+            <h3 id="accountTitle">Sign in &amp; sync</h3>
+            <div id="signedOutBlock">
+              <p class="help">Without an account, your progress stays in this browser. Sign in with Google to keep one tracker on every device and to connect your own AI.</p>
+              <div class="action-row" style="margin-top:12px">
+                <a class="btn primary" id="googleSignInBtn" href="/auth/google/start?return=settings">Sign in with Google</a>
+                <a class="btn" id="devSignInBtn" href="/auth/dev-login?return=settings" hidden>Test sign-in (local only)</a>
+              </div>
+              <p class="help" id="signInUnavailable" style="margin-top:10px" hidden>Google sign-in is not set up on this server yet. The tracker still works on this device, and every AI feature works with Copy prompt.</p>
+            </div>
+            <div id="signedInBlock" hidden>
+              <div class="account-chip"><img id="accountAvatar" alt="" referrerpolicy="no-referrer" hidden /><div><strong id="accountName"></strong><small id="accountEmail"></small></div></div>
+              <div class="action-row">
+                <button class="btn" id="syncNowBtn" type="button">Sync now</button>
+                <button class="btn ghost" id="signOutBtn" type="button">Sign out</button>
+              </div>
+              <details class="danger-zone">
+                <summary>Delete account</summary>
+                <div>
+                  <p class="help">Permanently deletes your synced progress, saved AI connections, and account from this server, and removes your progress from this browser. Download a backup first if you want to keep it.</p>
+                  <button class="btn danger" id="deleteAccountBtn" type="button">Delete my account and data</button>
+                </div>
+              </details>
+            </div>
+            <p class="sync-status" id="syncStatus" role="status" aria-live="polite">Not connected. Your progress is saved in this browser.</p>
+          </section>
+
+          <section class="settings-card" aria-labelledby="profileTitle">
+            <p class="eyebrow">Learner profile</p>
+            <h3 id="profileTitle">Your English goals</h3>
+            <p class="help">Every prompt, review, and handoff uses this so the AI coaches you, not a generic learner.</p>
+            <form class="settings-form" id="profileForm">
+              <div class="settings-grid">
+                <label class="field"><span>Name · optional</span><input type="text" id="profileName" maxlength="60" autocomplete="given-name" /></label>
+                <label class="field"><span>English variety</span><select id="profileVariety"><option>American English</option><option>British English</option><option>Canadian English</option><option>Australian English</option><option>International English</option></select></label>
+                <label class="field"><span>Current level</span><input type="text" id="profileLevel" maxlength="120" list="profileLevelOptions" placeholder="e.g. advanced (about C1)" /><datalist id="profileLevelOptions"><option value="upper-intermediate (about B2)"></option><option value="advanced (about C1)"></option><option value="proficient (about C2)"></option></datalist></label>
+                <label class="field"><span>First language · optional</span><input type="text" id="profileNativeLanguage" maxlength="60" /></label>
+              </div>
+              <label class="field"><span>Goals</span><textarea id="profileGoals" maxlength="400" placeholder="e.g. Speak confidently at work, write natural emails, and use collocations accurately."></textarea></label>
+              <div class="action-row" style="margin-top:0"><button class="btn primary" type="submit">Save profile</button><span class="save-state" id="profileState" role="status" aria-live="polite"></span></div>
+            </form>
+          </section>
+
+          <section class="settings-card settings-wide" aria-labelledby="aiTitle">
+            <p class="eyebrow">AI connection</p>
+            <h3 id="aiTitle">Connect your own AI</h3>
+            <p class="help">Use an API key from OpenAI, Anthropic (Claude), Google (Gemini), or any OpenAI-compatible service such as OpenRouter, Groq, Mistral, xAI, DeepSeek, or Together AI. Keys are encrypted on the server and never shown again; usage is billed by your provider. No key? Every AI feature also has a <strong>Copy prompt</strong> button that works in any AI chat.</p>
+            <div class="empty" id="aiSignedOutNote">Sign in to connect an AI provider. Copy prompt works without signing in.</div>
+            <div class="ai-connection-list" id="aiConnectionList"></div>
+            <form class="settings-form" id="aiConnectionForm" autocomplete="off" hidden>
+              <input type="hidden" id="aiEditId" />
+              <div class="settings-grid">
+                <label class="field"><span>Provider</span><select id="aiProvider"><option value="openai">OpenAI</option><option value="anthropic">Anthropic · Claude</option><option value="gemini">Google · Gemini</option><option value="compatible">OpenAI-compatible service</option></select></label>
+                <label class="field" id="aiPresetField" hidden><span>Service</span><select id="aiPreset"><option value="https://openrouter.ai/api/v1">OpenRouter</option><option value="https://api.groq.com/openai/v1">Groq</option><option value="https://api.mistral.ai/v1">Mistral</option><option value="https://api.x.ai/v1">xAI</option><option value="https://api.deepseek.com">DeepSeek</option><option value="https://api.together.ai/v1">Together AI</option><option value="">Other…</option></select></label>
+                <label class="field" id="aiBaseUrlField" hidden><span>API base URL</span><input type="url" id="aiBaseUrl" placeholder="https://example.com/v1" /></label>
+                <label class="field"><span id="aiKeyLabel">API key</span><input type="password" id="aiApiKey" autocomplete="new-password" placeholder="Paste your API key" /></label>
+                <label class="field"><span>Model</span><input type="text" id="aiModel" list="aiModelOptions" autocomplete="off" spellcheck="false" placeholder="Load my models, or type a model ID" /><datalist id="aiModelOptions"></datalist></label>
+                <label class="field" id="aiEffortField"><span>Reasoning effort · optional</span><select id="aiEffort"><option value="">Model default</option><option value="none">None</option><option value="minimal">Minimal</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></label>
+                <label class="field"><span>Name · optional</span><input type="text" id="aiLabel" maxlength="60" placeholder="e.g. My Claude key" /></label>
+              </div>
+              <div class="action-row" style="margin-top:0">
+                <button class="btn" type="button" id="aiLoadModelsBtn">Load my models</button>
+                <button class="btn primary" type="submit" id="aiSaveBtn">Save &amp; test</button>
+                <button class="btn ghost" type="button" id="aiCancelBtn" hidden>Cancel</button>
+              </div>
+            </form>
+            <span class="save-state" id="aiState" role="status" aria-live="polite"></span>
+          </section>
+
+          <section class="settings-card settings-wide" aria-labelledby="backupTitle">
+            <p class="eyebrow">Backup</p>
+            <h3 id="backupTitle">Export or import your tracker</h3>
+            <p class="help">Download everything as a JSON file, or merge a backup into this tracker. Importing never deletes existing records; when the same record exists in both, the newer copy is kept.</p>
+            <div class="action-row" style="margin-top:0">
+              <button class="btn" id="exportBackupBtn" type="button">Download backup</button>
+              <button class="btn" id="importBackupBtn" type="button">Import backup</button>
+              <input type="file" id="importBackupInput" accept="application/json,.json" hidden />
+              <span class="save-state" id="backupState" role="status" aria-live="polite"></span>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+    <p class="privacy" id="privacyNote">Your tracker always keeps a copy in this browser. Sign in with Google to use the same progress on every device.</p>
+    <footer class="site-footer"><span>English Fluency Tracker · © 2026 <a href="https://kamirian.github.io" target="_blank" rel="noopener">Kiyan Amirian</a>. All rights reserved.</span><a href="/privacy">Privacy</a></footer>
+  </main>
+
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="/tracker.js"></script>
+  <script src="/account.js"></script>
+  <script src="/spelling.js"></script>
+  <script src="/practice.js"></script>
+  <script type="module" src="/shared/prompts.js"></script>
+</body>
+</html>
