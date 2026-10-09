@@ -1,26 +1,27 @@
 // English Fluency Tracker — Cloudflare Workers configuration.
 // Copyright (c) 2026 Kiyan Amirian. Licensed under the MIT License.
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "english-fluency-tracker",
-  "main": "src/worker.js",
-  "compatibility_date": "2026-09-01",
-  "assets": {
-    "directory": "./public",
-    "binding": "ASSETS"
-  },
-  "d1_databases": [
-    {
-      "binding": "DB",
-      "database_name": "english-fluency-tracker",
-      // Replace with the database_id printed by: npx wrangler d1 create english-fluency-tracker
-      "database_id": "00000000-0000-0000-0000-000000000000",
-      "migrations_dir": "migrations"
-    }
-  ],
-  "vars": {
-    // Optional. Comma-separated emails or @domains allowed to sign in. Leave empty to allow any Google account.
-    "ALLOWED_EMAILS": ""
-  },
-  "observability": { "enabled": true }
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "english-fluency-tracker",
+	"main": "src/worker.js",
+	"compatibility_date": "2026-09-01",
+	"assets": {
+		"directory": "./public",
+		"binding": "ASSETS"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "english-fluency-tracker",
+			"database_id": "237d4d93-71d4-41a9-b090-330523f565b7",
+			"migrations_dir": "migrations"
+		}
+	],
+	"vars": {
+		// Optional. Comma-separated emails or @domains allowed to sign in. Leave empty to allow any Google account.
+		"ALLOWED_EMAILS": ""
+	},
+	"observability": {
+		"enabled": true
+	}
 }
